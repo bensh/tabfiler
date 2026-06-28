@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TabFiler</title>
+  <link rel="stylesheet" href="../fonts/fonts.css" />
+  <link rel="stylesheet" href="../lib/theme.css" />
+  <link rel="stylesheet" href="popup.css" />
+  <script src="../fonts/font-loader.js"></script>
+</head>
+<body class="popup">
+  <header class="pop-header">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+      <span class="brand-name">TabFiler</span>
+    </div>
+    <div class="pop-header__actions">
+      <button id="open-review" class="icon-btn" title="Review all open tabs" aria-label="Review all open tabs">
+        <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><rect x="2" y="3" width="12" height="2.4" rx="1" fill="currentColor"/><rect x="2" y="6.8" width="12" height="2.4" rx="1" fill="currentColor" opacity=".7"/><rect x="2" y="10.6" width="12" height="2.4" rx="1" fill="currentColor" opacity=".45"/></svg>
+      </button>
+      <button id="open-settings" class="icon-btn" title="Settings" aria-label="Settings">
+        <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M8 5.2A2.8 2.8 0 1 0 8 10.8 2.8 2.8 0 0 0 8 5.2Zm0 4.3a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Z"/><path fill="currentColor" d="m13.6 8 .9-1.1-.9-1.6-1.4.3-.3-.2-.4-1.4H9.5l-.4 1.4-.3.2-1.4-.3-.9 1.6.9 1.1v.3l-.9 1.1.9 1.6 1.4-.3.3.2.4 1.4h1.6l.4-1.4.3-.2 1.4.3.9-1.6-.9-1.1z" opacity=".25"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="pop-body">
+    <!-- current tab -->
+    <section class="tab-card" aria-labelledby="cur-label">
+      <p id="cur-label" class="eyebrow">Current tab</p>
+      <div class="tab-card__row">
+        <img id="cur-favicon" class="favicon" alt="" />
+        <div class="tab-card__text">
+          <div id="cur-title" class="tab-card__title">Loading…</div>
+          <div id="cur-url" class="tab-card__url mono">—</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- detected category -->
+    <section class="detect" aria-labelledby="detect-label">
+      <p id="detect-label" class="eyebrow">Goes to</p>
+      <div class="detect__head">
+        <span id="cur-badge" class="badge badge--lg cat-unknown"><span class="dot"></span><span id="cur-badge-name">Unknown</span></span>
+        <span id="cur-manual" class="manual-tag" hidden>manual</span>
+      </div>
+      <p id="cur-reason" class="detect__reason">No keywords matched.</p>
+
+      <!-- shown only when Unknown -->
+      <div id="nofit" class="nofit" hidden>
+        <span class="nofit__q">Doesn't fit anywhere.</span>
+        <div class="nofit__actions">
+          <button id="nofit-new" class="btn btn--sm">New folder…</button>
+          <button id="nofit-choose" class="btn btn--sm btn--ghost">Choose folder</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- manual override -->
+    <section class="override">
+      <label class="field-label eyebrow" for="cur-override">Change folder</label>
+      <select id="cur-override" aria-label="Change folder">
+      </select>
+    </section>
+
+    <!-- inline new-folder dialog -->
+    <section id="newfolder" class="newfolder" hidden>
+      <label class="field-label eyebrow" for="newfolder-name">New folder name</label>
+      <div class="newfolder__row">
+        <input type="text" id="newfolder-name" placeholder="e.g. Rust" aria-label="New folder name" autocomplete="off" />
+        <button id="newfolder-create" class="btn btn--sm btn--primary">Create</button>
+        <button id="newfolder-cancel" class="btn btn--sm btn--ghost">Cancel</button>
+      </div>
+      <p id="newfolder-error" class="newfolder__error" role="alert" hidden></p>
+    </section>
+
+    <!-- primary action -->
+    <button id="bookmark-now" class="btn btn--primary btn--block bookmark-btn">
+      <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M4 2.5A1.5 1.5 0 0 1 5.5 1h5A1.5 1.5 0 0 1 12 2.5V15l-4-2.6L4 15V2.5Z"/></svg>
+      <span>Bookmark now</span>
+    </button>
+
+    <!-- auto-bookmark toggle -->
+    <section class="auto-row">
+      <label class="switch">
+        <input type="checkbox" id="auto-toggle" />
+        <span class="track" aria-hidden="true"></span>
+        <span class="auto-row__text">
+          <span class="auto-row__title">Auto-bookmark pages like this</span>
+          <span id="auto-sub" class="auto-row__sub">Applies to the <b>Android</b> folder.</span>
+        </span>
+      </label>
+    </section>
+  </main>
+
+  <!-- inline toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden>
+    <span class="toast__msg">Saved to <b id="toast-folder">Android</b></span>
+    <button id="toast-undo" class="toast__undo">Undo</button>
+    <span class="toast__bar"></span>
+  </div>
+
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

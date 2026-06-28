@@ -66,8 +66,8 @@ workflow.
 ## Licence
 
 Code is released under the [MIT Licence](LICENSE). Bundled fonts (Space Grotesk and
-JetBrains Mono) are licensed under the
-[SIL Open Font License](https://openfontlicense.org); see `fonts/`.
+JetBrains Mono) are licensed under the SIL Open Font License; see
+[`fonts/OFL.txt`](fonts/OFL.txt).
 
 ---
 

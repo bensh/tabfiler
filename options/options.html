@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TabFiler — Settings</title>
+  <link rel="stylesheet" href="../fonts/fonts.css" />
+  <link rel="stylesheet" href="../lib/theme.css" />
+  <link rel="stylesheet" href="options.css" />
+  <script src="../fonts/font-loader.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <!-- sidebar -->
+    <aside class="side">
+      <div class="brand side__brand">
+        <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+        <span class="brand-name">TabFiler</span>
+      </div>
+      <nav class="side__nav" aria-label="Sections">
+        <a href="#review"   class="navlink" data-route="review">Open tabs</a>
+        <a href="#settings" class="navlink" data-route="settings">Settings</a>
+        <a href="#rules"    class="navlink" data-route="rules">Category rules</a>
+      </nav>
+      <p class="side__foot eyebrow">v0.1 · local only<br><a href="https://github.com/bensh" target="_blank" rel="noopener noreferrer" class="side__credit">made by bensh ↗</a></p>
+    </aside>
+
+    <!-- content -->
+    <main class="content">
+
+      <!-- ============ REVIEW ============ -->
+      <section id="route-review" class="route" hidden>
+        <header class="page-head">
+          <div>
+            <h1 class="display">Open tabs <span id="tab-count" class="count">0</span></h1>
+            <p class="page-sub">Sort the tabs you have open right now into bookmark folders.</p>
+          </div>
+          <div class="page-head__actions">
+            <button id="rerun" class="btn btn--sm">
+              <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M8 3V1L5 4l3 3V5a3 3 0 1 1-3 3H3a5 5 0 1 0 5-5Z"/></svg>
+              Re-run categorisation
+            </button>
+          </div>
+        </header>
+
+        <div class="review-toolbar">
+          <label class="check"><input type="checkbox" id="select-all" /><span class="box" aria-hidden="true"></span> Select all</label>
+          <div class="filters" role="group" aria-label="Filter tabs">
+            <button class="chip is-active" data-filter="all">All</button>
+            <button class="chip" data-filter="unknown">Unknown only</button>
+          </div>
+          <div class="spacer"></div>
+          <button id="ignore-sel" class="btn btn--sm btn--ghost" disabled>Ignore selected</button>
+          <button id="bookmark-sel" class="btn btn--sm" disabled>Bookmark selected</button>
+          <button id="bookmark-all" class="btn btn--sm btn--primary">Bookmark all</button>
+        </div>
+
+        <ul id="tab-list" class="tab-list"></ul>
+        <p id="review-empty" class="empty" hidden>No open tabs to review.</p>
+      </section>
+
+      <!-- ============ SETTINGS ============ -->
+      <section id="route-settings" class="route" hidden>
+        <header class="page-head">
+          <div>
+            <h1 class="display">Settings</h1>
+            <p class="page-sub">Decide when TabFiler files things, and how it handles duplicates.</p>
+          </div>
+        </header>
+
+        <div class="setting-group card">
+          <p class="eyebrow group-label">Automation</p>
+          <div class="set-row">
+            <div class="set-row__text"><b>Auto-bookmark on page load</b><span>File a page the moment it finishes loading.</span></div>
+            <label class="switch"><input type="checkbox" id="s-onload" /><span class="track" aria-hidden="true"></span></label>
+          </div>
+          <div class="set-row">
+            <div class="set-row__text"><b>Auto-bookmark on tab close</b><span>The safety net — catch pages as you close them.</span></div>
+            <label class="switch"><input type="checkbox" id="s-onclose" /><span class="track" aria-hidden="true"></span></label>
+          </div>
+          <div class="set-row">
+            <div class="set-row__text"><b>Notify me when a page is auto-filed</b><span>A small message with an undo option.</span></div>
+            <label class="switch"><input type="checkbox" id="s-notify" /><span class="track" aria-hidden="true"></span></label>
+          </div>
+        </div>
+
+        <div class="setting-group card">
+          <p class="eyebrow group-label">Duplicates</p>
+          <p class="group-help">A page counts as a duplicate when it has the same URL, or the same title on the same site. When that happens…</p>
+          <div class="radio-set" role="radiogroup" aria-label="Duplicate handling">
+            <label class="radio"><input type="radio" name="dup" value="skip" /><span class="dot-r"></span><span><b>Skip</b> — leave the existing bookmark alone</span></label>
+            <label class="radio"><input type="radio" name="dup" value="update" /><span class="dot-r"></span><span><b>Update</b> — refresh its title and URL, and move it to the right folder</span></label>
+            <label class="radio"><input type="radio" name="dup" value="allow" /><span class="dot-r"></span><span><b>Allow</b> — keep both</span></label>
+          </div>
+          <p class="group-note">A matching title on a <i>different</i> site is filed as new and marked “possible duplicate,” so nothing gets overwritten by mistake.</p>
+        </div>
+
+        <div class="setting-group card">
+          <p class="eyebrow group-label">Unknown pages</p>
+          <div class="radio-set" role="radiogroup" aria-label="Unknown handling">
+            <label class="radio"><input type="radio" name="unk" value="bookmark" /><span class="dot-r"></span><span>Save into an <b>Unknown</b> folder</span></label>
+            <label class="radio"><input type="radio" name="unk" value="ignore" /><span class="dot-r"></span><span><b>Ignore</b> — don't bookmark unmatched pages</span></label>
+          </div>
+          <div class="set-row set-row--sub">
+            <div class="set-row__text"><b>Ask me when something doesn't fit</b><span>Offer to create or pick a folder instead.</span></div>
+            <label class="switch"><input type="checkbox" id="s-ask" /><span class="track" aria-hidden="true"></span></label>
+          </div>
+        </div>
+
+        <div class="setting-group card">
+          <p class="eyebrow group-label">Matching</p>
+          <div class="set-row">
+            <div class="set-row__text"><b>Match whole words only</b><span>On by default — keeps “ios” out of “scenarios.” Turn off to also catch keywords glued to other characters, like “iOS18”.</span></div>
+            <label class="switch"><input type="checkbox" id="s-wholeword" /><span class="track" aria-hidden="true"></span></label>
+          </div>
+          <div class="set-row">
+            <div class="set-row__text"><b>Folder location</b><span>Bookmarks Menu / <span id="root-name" class="mono">TabFiler</span> / [category]</span></div>
+            <input type="text" id="s-root" class="root-input" aria-label="Root folder name" />
+          </div>
+        </div>
+
+        <div class="setting-group card">
+          <p class="eyebrow group-label">Backup</p>
+          <p class="group-help">Save your folders, keywords, priority order, and settings to a file — handy before reinstalling. Your bookmarks live in Firefox and aren't affected either way.</p>
+          <div class="set-row set-row--backup">
+            <div class="set-row__text"><b>Export to file</b><span>Downloads a small <span class="mono">.json</span> file you can keep.</span></div>
+            <button id="export-btn" class="btn btn--sm">Export</button>
+          </div>
+          <div class="set-row set-row--backup">
+            <div class="set-row__text"><b>Import from file</b><span>Replaces your current rules and settings with the file's.</span></div>
+            <button id="import-btn" class="btn btn--sm">Choose file…</button>
+            <input type="file" id="import-file" accept="application/json,.json" hidden />
+          </div>
+          <p id="backup-msg" class="backup-msg" role="status" hidden></p>
+        </div>
+
+        <div class="setting-foot">
+          <button id="reset-defaults" class="btn btn--ghost btn--sm">Reset to defaults</button>
+        </div>
+      </section>
+
+      <!-- ============ RULES ============ -->
+      <section id="route-rules" class="route" hidden>
+        <header class="page-head">
+          <div>
+            <h1 class="display">Category rules</h1>
+            <p class="page-sub">Keywords decide the folder. When several match, the category higher in the list wins.</p>
+          </div>
+        </header>
+
+        <div class="rules-grid">
+          <!-- priority list -->
+          <div class="rules-col">
+            <p class="eyebrow">Priority — drag to reorder</p>
+            <ul id="cat-list" class="cat-list"></ul>
+            <div class="cat-pinned">
+              <span class="badge cat-unknown"><span class="dot"></span>Unknown</span>
+              <span class="cat-pinned__note">Fallback when nothing matches. Always last.</span>
+            </div>
+            <button id="add-cat" class="btn btn--sm add-cat">+ Add category</button>
+          </div>
+
+          <!-- live test -->
+          <div class="rules-col">
+            <p class="eyebrow">Test a title</p>
+            <input type="text" id="test-input" placeholder="e.g. security workshop and guide book | android" aria-label="Test tab title" />
+            <div id="test-result" class="test-result">
+              <span class="badge badge--lg cat-unknown"><span class="dot"></span><span class="test-cat">Unknown</span></span>
+              <p class="test-reason">Type a title to see where it would go.</p>
+            </div>
+            <div class="test-presets">
+              <p class="eyebrow">Try these</p>
+              <button class="preset" data-t="security workshop and guide book | android">android vs security</button>
+              <button class="preset" data-t="Kubernetes ingress security best practices">k8s vs security</button>
+              <button class="preset" data-t="mobile app UX checklist">generic mobile</button>
+              <button class="preset" data-t="how to bake sourdough bread">no match</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- toast -->
+  <div id="toast" class="toast toast--page" role="status" aria-live="polite" hidden>
+    <span class="toast__msg" id="toast-msg">Saved</span>
+    <button id="toast-undo" class="toast__undo">Undo</button>
+  </div>
+
+  <script type="module" src="options.js"></script>
+</body>
+</html>

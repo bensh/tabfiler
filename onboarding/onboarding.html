@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Welcome to TabFiler</title>
+  <link rel="stylesheet" href="../fonts/fonts.css" />
+  <link rel="stylesheet" href="../lib/theme.css" />
+  <link rel="stylesheet" href="onboarding.css" />
+  <script src="../fonts/font-loader.js"></script>
+</head>
+<body>
+  <div class="ob">
+    <div class="ob__progress" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i></div>
+
+    <!-- step 1 -->
+    <section class="step is-active" data-step="1">
+      <div class="brand ob__brand">
+        <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+        <span class="brand-name">TabFiler</span>
+      </div>
+      <h1 class="display ob__h1">Your tabs, filed for you.</h1>
+      <p class="ob__lead">TabFiler reads the title of each page you open and saves it into the right bookmark folder — so you can close tabs without losing a thing.</p>
+      <div class="ob__hero" aria-hidden="true">
+        <div class="hero-tab"><span class="favicon"></span><span>Kubernetes ingress security…</span><span class="badge cat-k8s"><span class="dot"></span>K8s / Docker</span></div>
+        <div class="hero-tab"><span class="favicon"></span><span>SwiftUI navigation tutorial</span><span class="badge cat-ios"><span class="dot"></span>iOS</span></div>
+        <div class="hero-tab"><span class="favicon"></span><span>OWASP Top 10</span><span class="badge cat-security"><span class="dot"></span>Security</span></div>
+      </div>
+      <button class="btn btn--primary ob__next">Get started</button>
+    </section>
+
+    <!-- step 2 -->
+    <section class="step" data-step="2">
+      <p class="eyebrow">Step 2 of 4</p>
+      <h1 class="display ob__h1">What TabFiler can do</h1>
+      <p class="ob__lead">Two permissions, both used only on your machine. Nothing is ever sent anywhere.</p>
+      <ul class="perm-list">
+        <li><span class="perm-ic">⊞</span><div><b>Read your open tabs</b><span>So it can see each page's title and decide where it belongs.</span></div></li>
+        <li><span class="perm-ic">★</span><div><b>Manage your bookmarks</b><span>So it can create folders and save pages into them.</span></div></li>
+      </ul>
+      <div class="ob__row">
+        <button class="btn btn--ghost ob__back">Back</button>
+        <button class="btn btn--primary ob__next">Grant permissions</button>
+      </div>
+    </section>
+
+    <!-- step 3 -->
+    <section class="step" data-step="3">
+      <p class="eyebrow">Step 3 of 4</p>
+      <h1 class="display ob__h1">How sorting works</h1>
+      <p class="ob__lead">Keywords in the title decide the folder. When several match, the category higher in this list wins — so an Android security page goes to <b>Android</b>, not Security.</p>
+      <ol class="prio-list">
+        <li><span class="crow__rank">1</span><span class="badge cat-android"><span class="dot"></span>Android</span></li>
+        <li><span class="crow__rank">2</span><span class="badge cat-ios"><span class="dot"></span>iOS</span></li>
+        <li><span class="crow__rank">3</span><span class="badge cat-k8s"><span class="dot"></span>Kubernetes / Docker</span></li>
+        <li><span class="crow__rank">4</span><span class="badge cat-security"><span class="dot"></span>Security</span></li>
+        <li><span class="crow__rank">5</span><span class="badge cat-mobile"><span class="dot"></span>Mobile</span></li>
+        <li><span class="crow__rank">6</span><span class="badge cat-unknown"><span class="dot"></span>Unknown</span></li>
+      </ol>
+      <p class="ob__note">You can rename folders, change keywords, and reorder priority any time in Settings.</p>
+      <div class="ob__row">
+        <button class="btn btn--ghost ob__back">Back</button>
+        <button class="btn btn--primary ob__next">Looks good</button>
+      </div>
+    </section>
+
+    <!-- step 4 -->
+    <section class="step" data-step="4">
+      <p class="eyebrow">Step 4 of 4</p>
+      <h1 class="display ob__h1">When should TabFiler file?</h1>
+      <p class="ob__lead">Pick how it runs. You can change this whenever you like.</p>
+      <div class="mode-cards" role="radiogroup" aria-label="When to auto-file">
+        <label class="mode"><input type="radio" name="mode" value="manual" checked /><div class="mode__body"><b>Manual only</b><span>Nothing happens until you click. Best to start.</span></div></label>
+        <label class="mode"><input type="radio" name="mode" value="close" /><div class="mode__body"><b>On tab close</b><span>Catch pages as you close them — the safety net.</span></div></label>
+        <label class="mode"><input type="radio" name="mode" value="load" /><div class="mode__body"><b>On page load</b><span>File every page as soon as it loads.</span></div></label>
+      </div>
+      <div class="ob__row">
+        <button class="btn btn--ghost ob__back">Back</button>
+        <button class="btn btn--primary" id="finish">Finish setup</button>
+      </div>
+    </section>
+  </div>
+  <script type="module" src="onboarding.js"></script>
+</body>
+</html>

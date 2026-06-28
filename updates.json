@@ -1,0 +1,17 @@
+{
+  "addons": {
+    "tabfiler@bensh.github.io": {
+      "updates": [
+        {
+          "version": "0.1.0",
+          "update_link": "https://github.com/bensh/tabfiler/releases/download/v0.1.0/tabfiler-0.1.0.xpi",
+          "applications": {
+            "gecko": {
+              "strict_min_version": "140.0"
+            }
+          }
+        }
+      ]
+    }
+  }
+}
