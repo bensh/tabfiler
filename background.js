@@ -51,7 +51,10 @@ async function fileTab(tab, trigger) {
   if (!tab || !tab.url || !/^https?:/.test(tab.url) || !tab.title) return;
   if (!categorize || !fileBookmark) return;
   const { settings, rules } = await getState();
-  if (throttled(tab.url)) return;
+  // Throttle per trigger+URL so a load-file and a close-file of the same page
+  // don't cancel each other, while still absorbing event floods (session
+  // restore, bulk close) for the same trigger.
+  if (throttled(`${trigger}:${tab.url}`)) return;
 
   const r = categorize(tab.title, rules, { wholeWord: settings.wholeWord });
   if (r.category.id === "unknown" && settings.unknownMode === "ignore") return;
@@ -112,17 +115,37 @@ browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status === "complete") fileTab(tab, "load");
 });
 
-// on tab close — must read tab info before it's gone, so we cache titles
+// on tab close — must read tab info before it's gone, so we keep a live
+// snapshot of each tab. Titles and URLs can arrive in SEPARATE onUpdated
+// events (and some pages, like GitHub's PDF viewer, populate the title late
+// or only after the tab is activated), so we MERGE partial data rather than
+// requiring url+title in a single event.
 const cache = new Map();
-browser.tabs.onUpdated.addListener((tabId, _c, tab) => {
-  if (tab.url && tab.title) {
-    cache.set(tabId, { id: tabId, url: tab.url, title: tab.title, favIconUrl: tab.favIconUrl });
+
+function remember(tabId, tab) {
+  if (!tab) return;
+  const prev = cache.get(tabId) || {};
+  const next = {
+    id: tabId,
+    url: tab.url || prev.url,
+    title: tab.title || prev.title,
+    favIconUrl: tab.favIconUrl || prev.favIconUrl,
+  };
+  // Only store once we at least have a URL; title may fill in later.
+  if (next.url) {
+    cache.set(tabId, next);
     if (cache.size > MAX_MAP) cache.delete(cache.keys().next().value);
   }
+}
+
+browser.tabs.onUpdated.addListener((tabId, _changeInfo, tab) => {
+  remember(tabId, tab);
 });
+
 browser.tabs.onRemoved.addListener((tabId) => {
   const tab = cache.get(tabId);
-  if (tab) { fileTab(tab, "close"); cache.delete(tabId); }
+  if (tab && tab.url && tab.title) fileTab(tab, "close");
+  cache.delete(tabId);
 });
 
 // first run

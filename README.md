@@ -31,9 +31,11 @@ extension's settings.
 - **Popup** — see the current tab's folder, why it was chosen, and bookmark it (or
   override the folder) in one click.
 - **Review all tabs** — categorise and bookmark every open tab at once.
-- **Smart duplicates** — same URL or same title on the same site is treated as a
-  duplicate (skip / update / keep both, your choice). A matching title on a *different*
-  site is flagged, never silently merged.
+- **Smart duplicates** — within TabFiler's own folders, a page with the same URL or
+  same title on the same site is treated as a duplicate (skip / update / keep both,
+  your choice). Copies that live in other folders — yours or another tool's — are
+  ignored and never modified. A matching title on a *different* site is flagged, never
+  silently merged.
 - **Auto-file** — optionally bookmark pages on load, on tab close, or per-category.
 - **Backup** — export/import your rules and settings as JSON.
 - **Private by design** — no tracking, no servers, no data collection.
