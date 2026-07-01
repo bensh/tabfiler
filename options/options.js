@@ -3,6 +3,7 @@ import {
   getRules, setRules, getSettings, setSettings, getOpenTabs, isDemo, runtimeApi,
   buildBackup, validateBackup, applyBackup,
 } from "../lib/store.js";
+import { getFiled } from "../lib/bookmarks.js";
 
 const $ = (id) => document.getElementById(id);
 const $$ = (sel) => Array.from(document.querySelectorAll(sel));
@@ -38,7 +39,7 @@ let filter = "all";
 let focusKeywordFor = null; // category id whose keyword input should regain focus after re-render
 
 /* ---------------- routing ---------------- */
-const ROUTES = ["review", "settings", "rules"];
+const ROUTES = ["review", "filed", "settings", "rules"];
 function route() {
   let r = location.hash.replace("#", "") || "settings";
   if (!ROUTES.includes(r)) r = "settings";
@@ -46,6 +47,7 @@ function route() {
   $$(".navlink").forEach((a) => a.classList.toggle("is-active", a.dataset.route === r));
   if (r === "review") renderReview();
   if (r === "rules") renderRules();
+  if (r === "filed") renderFiled();
 }
 window.addEventListener("hashchange", route);
 
@@ -267,6 +269,7 @@ async function bookmarkIds(ids) {
     // real bookmark creation would happen here in extension mode
   }
   renderReview();
+  filedData = null; // refresh Filed counts next time it's opened
   pageToast(["Filed ", el("b", { text: String(ids.length) }), ` ${ids.length === 1 ? "tab" : "tabs"}.`], () => {
     ids.forEach((id) => { tabState[id] = { ...tabState[id], status: "pending" }; });
     renderReview();
@@ -288,6 +291,150 @@ function bindReview() {
     $$(".chip").forEach((c) => c.classList.remove("is-active"));
     chip.classList.add("is-active"); filter = chip.dataset.filter; renderReview();
   });
+}
+
+/* ---------------- filed ---------------- */
+let filedData = null;      // cached [{name,count,items}]
+let filedOpen = new Set(); // category names currently expanded
+
+// Demo bookmarks so the Filed view is populated in the static preview.
+const DEMO_FILED = [
+  { name: "Android", count: 2, items: [
+    { id: "d1", title: "Jetpack Compose state hoisting", url: "https://developer.android.com/jetpack/compose/state" },
+    { id: "d2", title: "security workshop and guide book | android", url: "https://example.com/workshop" },
+  ]},
+  { name: "iOS", count: 1, items: [
+    { id: "d3", title: "SwiftUI navigation stack tutorial", url: "https://developer.apple.com/tutorials/swiftui" },
+  ]},
+  { name: "Kubernetes / Docker", count: 2, items: [
+    { id: "d4", title: "Kubernetes ingress security best practices", url: "https://kubernetes.io/docs/concepts/services-networking/ingress/" },
+    { id: "d5", title: "Docker Compose networking explained", url: "https://docs.docker.com/compose/networking/" },
+  ]},
+  { name: "Security", count: 1, items: [
+    { id: "d6", title: "OWASP Top 10 — 2024 (possible duplicate)", url: "https://owasp.org/Top10/" },
+  ]},
+];
+
+async function loadFiled() {
+  if (isDemo) return structuredClone(DEMO_FILED);
+  try { return await getFiled(runtimeApi(), settings.rootFolderName); }
+  catch (e) { console.error(e); return []; }
+}
+
+async function renderFiled() {
+  const host = $("filed-list");
+  if (!filedData) {
+    host.replaceChildren(el("p", { class: "empty", text: "Loading…" }));
+    filedData = await loadFiled();
+  }
+  const q = ($("filed-search").value || "").trim().toLowerCase();
+
+  // filter items by search query
+  const cats = filedData
+    .map((c) => {
+      if (!q) return c;
+      const items = c.items.filter((it) =>
+        it.title.toLowerCase().includes(q) || it.url.toLowerCase().includes(q));
+      return { ...c, items, count: items.length };
+    })
+    .filter((c) => !q || c.items.length > 0);
+
+  const total = filedData.reduce((n, c) => n + c.count, 0);
+  $("filed-empty").hidden = total > 0;
+  host.replaceChildren();
+  if (total === 0) return;
+
+  for (const cat of cats) {
+    const open = q ? true : filedOpen.has(cat.name); // expand all while searching
+    const chevron = el("span", { class: "filed-cat__chevron", "aria-hidden": "true" }, ["▶"]);
+    const head = el("button", {
+      class: "filed-cat__head", "aria-expanded": open ? "true" : "false",
+      onclick: () => {
+        if (filedOpen.has(cat.name)) filedOpen.delete(cat.name); else filedOpen.add(cat.name);
+        renderFiled();
+      },
+    }, [
+      chevron,
+      el("span", { class: `badge ${catClass(catIdFromName(cat.name))}` }, [el("span", { class: "dot" }), cat.name]),
+      el("span", { class: "filed-cat__count", text: `${cat.count}` }),
+    ]);
+
+    const items = el("ul", { class: "filed-cat__items" });
+    if (!open) items.hidden = true;
+    for (const it of cat.items) {
+      const flagged = /\(possible duplicate\)/i.test(it.title);
+      const cleanTitle = it.title.replace(/\s*\(possible duplicate\)\s*$/i, "");
+
+      const link = el("a", {
+        class: "filed-item__link", href: it.url, target: "_blank", rel: "noopener noreferrer",
+      }, [
+        el("div", { class: "filed-item__text" }, [
+          el("div", { class: "filed-item__title", text: cleanTitle }),
+          el("div", { class: "filed-item__url", text: prettyUrl(it.url) }),
+        ]),
+        flagged ? el("span", { class: "filed-flag", text: "dup?" }) : null,
+        el("span", { class: "filed-item__open", "aria-hidden": "true", text: "↗" }),
+      ]);
+
+      const del = el("button", {
+        class: "filed-item__del", "aria-label": `Remove ${cleanTitle} from ${cat.name}`,
+        title: "Remove from TabFiler", text: "✕",
+        onclick: (e) => { e.preventDefault(); e.stopPropagation(); deleteFiled(it, cleanTitle, cat.name); },
+      });
+
+      items.appendChild(el("li", { class: "filed-item" }, [link, del]));
+    }
+
+    const card = el("div", { class: `filed-cat ${open ? "is-open" : ""}` }, [head, items]);
+    host.appendChild(card);
+  }
+}
+
+function catIdFromName(name) {
+  const found = allCategories(rules).find((c) => c.name === name);
+  return found ? found.id : "unknown";
+}
+function prettyUrl(url) {
+  try { const u = new URL(url); return u.host.replace(/^www\./, "") + (u.pathname === "/" ? "" : u.pathname); }
+  catch { return url; }
+}
+
+function bindFiled() {
+  $("filed-search").addEventListener("input", () => renderFiled());
+}
+
+// Remove a filed bookmark. Only touches TabFiler's own folder. Offers undo by
+// recreating the bookmark in the same category if the user changes their mind.
+async function deleteFiled(item, cleanTitle, catName) {
+  if (!confirm(`Remove “${cleanTitle}” from ${catName}?\n\nThis deletes the bookmark from your ${catName} folder. The page itself is unaffected.`)) {
+    return;
+  }
+
+  let recreate = null;
+  if (!isDemo) {
+    try {
+      const api = runtimeApi();
+      // snapshot for undo before removing
+      const node = await api.bookmarks.get(item.id).then((n) => n[0]).catch(() => null);
+      await api.bookmarks.remove(item.id);
+      if (node) {
+        recreate = async () => {
+          try { await api.bookmarks.create({ parentId: node.parentId, title: node.title, url: node.url }); }
+          catch (e) {}
+          filedData = null; renderFiled();
+        };
+      }
+    } catch (e) { console.error(e); }
+  }
+
+  // update local cache immediately
+  if (filedData) {
+    const cat = filedData.find((c) => c.name === catName);
+    if (cat) { cat.items = cat.items.filter((i) => i.id !== item.id); cat.count = cat.items.length; }
+  }
+  renderFiled();
+
+  pageToast([`Removed from `, el("b", { text: catName })], recreate || undefined);
 }
 
 /* ---------------- rules ---------------- */
@@ -433,6 +580,7 @@ async function init() {
   bindSettings();
   bindReview();
   bindRules();
+  bindFiled();
   route();
 }
 init();

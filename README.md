@@ -31,6 +31,10 @@ extension's settings.
 - **Popup** — see the current tab's folder, why it was chosen, and bookmark it (or
   override the folder) in one click.
 - **Review all tabs** — categorise and bookmark every open tab at once.
+- **Filed** — a read-only overview of everything TabFiler has saved, grouped by folder
+  with live counts; expand a folder and click any page to open it, or remove one that
+  was filed by mistake (with undo). Renaming and reordering stay in Firefox's own
+  bookmark manager.
 - **Smart duplicates** — within TabFiler's own folders, a page with the same URL or
   same title on the same site is treated as a duplicate (skip / update / keep both,
   your choice). Copies that live in other folders — yours or another tool's — are

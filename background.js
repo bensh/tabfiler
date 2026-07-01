@@ -115,11 +115,14 @@ browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status === "complete") fileTab(tab, "load");
 });
 
-// on tab close — must read tab info before it's gone, so we keep a live
-// snapshot of each tab. Titles and URLs can arrive in SEPARATE onUpdated
-// events (and some pages, like GitHub's PDF viewer, populate the title late
-// or only after the tab is activated), so we MERGE partial data rather than
-// requiring url+title in a single event.
+// on tab close — we must already hold the tab's title/url, because onRemoved
+// fires after the tab is gone and can't be queried. We keep a live snapshot,
+// refreshed at every reliable moment:
+//   - onUpdated: merges partial data as it streams in during load
+//   - onUpdated status:"complete": the authoritative full-title snapshot
+//   - onActivated: when you click back into a tab (incl. a discarded tab that
+//     reloads), capture its settled title — this is the case where a sleeping
+//     tab wakes up and the cache would otherwise hold stale/empty data.
 const cache = new Map();
 
 function remember(tabId, tab) {
@@ -131,7 +134,6 @@ function remember(tabId, tab) {
     title: tab.title || prev.title,
     favIconUrl: tab.favIconUrl || prev.favIconUrl,
   };
-  // Only store once we at least have a URL; title may fill in later.
   if (next.url) {
     cache.set(tabId, next);
     if (cache.size > MAX_MAP) cache.delete(cache.keys().next().value);
@@ -140,6 +142,18 @@ function remember(tabId, tab) {
 
 browser.tabs.onUpdated.addListener((tabId, _changeInfo, tab) => {
   remember(tabId, tab);
+});
+
+// When you switch to a tab — including a discarded tab that reloads on click —
+// read its live state and snapshot the real title. A just-woken discarded tab
+// may not have its title ready at the instant of activation, so we also take a
+// second snapshot shortly after, once the reload has settled.
+browser.tabs.onActivated.addListener(async ({ tabId }) => {
+  const snap = async () => {
+    try { remember(tabId, await browser.tabs.get(tabId)); } catch (e) {}
+  };
+  await snap();
+  setTimeout(snap, 1200);
 });
 
 browser.tabs.onRemoved.addListener((tabId) => {

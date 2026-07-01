@@ -19,6 +19,7 @@
       </div>
       <nav class="side__nav" aria-label="Sections">
         <a href="#review"   class="navlink" data-route="review">Open tabs</a>
+        <a href="#filed"    class="navlink" data-route="filed">Filed</a>
         <a href="#settings" class="navlink" data-route="settings">Settings</a>
         <a href="#rules"    class="navlink" data-route="rules">Category rules</a>
       </nav>
@@ -57,6 +58,21 @@
 
         <ul id="tab-list" class="tab-list"></ul>
         <p id="review-empty" class="empty" hidden>No open tabs to review.</p>
+      </section>
+
+      <!-- ============ FILED ============ -->
+      <section id="route-filed" class="route" hidden>
+        <header class="page-head">
+          <div>
+            <h1 class="display">Filed</h1>
+            <p class="page-sub">Everything TabFiler has saved, grouped by folder. Click any page to open it.</p>
+          </div>
+          <div class="page-head__actions">
+            <input type="search" id="filed-search" class="filed-search" placeholder="Search filed pages…" aria-label="Search filed pages" />
+          </div>
+        </header>
+        <div id="filed-list" class="filed-list"></div>
+        <p id="filed-empty" class="empty" hidden>Nothing filed yet. Bookmark a few tabs and they'll show up here.</p>
       </section>
 
       <!-- ============ SETTINGS ============ -->

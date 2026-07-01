@@ -19,6 +19,15 @@
               "strict_min_version": "140.0"
             }
           }
+        },
+        {
+          "version": "0.3.0",
+          "update_link": "https://github.com/bensh/tabfiler/releases/download/v0.3.0/tabfiler-0.3.0.xpi",
+          "applications": {
+            "gecko": {
+              "strict_min_version": "140.0"
+            }
+          }
         }
       ]
     }
