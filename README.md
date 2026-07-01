@@ -41,6 +41,10 @@ extension's settings.
   ignored and never modified. A matching title on a *different* site is flagged, never
   silently merged.
 - **Auto-file** — optionally bookmark pages on load, on tab close, or per-category.
+- **A chance to cancel** — when you close a matching tab, TabFiler can give you a few
+  seconds to change your mind (handy for pages you only glanced at). Two styles: save
+  immediately and let you undo, or hold the save and let you skip it entirely. Toggle
+  and timing live in Settings.
 - **Backup** — export/import your rules and settings as JSON.
 - **Private by design** — no tracking, no servers, no data collection.
 

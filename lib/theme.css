@@ -22,13 +22,8 @@
   --accent-ink: #FBF9F4;
   --accent-soft:#E4EAF3;
 
-  /* category colors (mirror categorize.js) */
-  --cat-android:  #2FA866;
-  --cat-ios:      #0A6BD6;
-  --cat-k8s:      #3457C4;
-  --cat-security: #C73B40;
-  --cat-mobile:   #7C5CCB;
-  --cat-unknown:  #8B8680;
+  /* category colours are computed per-name in categorize.js and applied
+     inline via --cat; no fixed per-category variables needed. */
 
   /* status */
   --good:   #2FA866;
@@ -63,12 +58,6 @@
     --accent:     #7CA0DA;
     --accent-ink: #16140F;
     --accent-soft:#27303E;
-    --cat-android:  #3DDC84;
-    --cat-ios:      #57A6FF;
-    --cat-k8s:      #6E8CF0;
-    --cat-security: #F0676B;
-    --cat-mobile:   #A78CF0;
-    --cat-unknown:  #A39C8B;
     --shadow-1: 0 1px 2px rgba(0,0,0,.4);
     --shadow-2: 0 8px 26px rgba(0,0,0,.5);
   }
@@ -134,18 +123,11 @@ h1, h2, h3, .display {
 }
 .badge .dot {
   width: 8px; height: 8px; border-radius: 50%;
-  background: var(--cat, var(--cat-unknown));
+  background: var(--cat, #8B8680);
   flex: none;
 }
 .badge--lg { font-size: 13.5px; padding: 5px 12px 5px 9px; }
 .badge--lg .dot { width: 9px; height: 9px; }
-
-.cat-android  { --cat: var(--cat-android); }
-.cat-ios      { --cat: var(--cat-ios); }
-.cat-k8s      { --cat: var(--cat-k8s); }
-.cat-security { --cat: var(--cat-security); }
-.cat-mobile   { --cat: var(--cat-mobile); }
-.cat-unknown  { --cat: var(--cat-unknown); }
 
 /* ---- buttons ---- */
 .btn {

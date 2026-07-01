@@ -1,11 +1,15 @@
-import { categorize, allCategories } from "../lib/categorize.js";
+import { categorize, allCategories, categoryColor } from "../lib/categorize.js";
 import { getRules, setRules, getSettings, setSettings, getActiveTab, isDemo, runtimeApi } from "../lib/store.js";
 import { fileBookmark } from "../lib/bookmarks.js";
 
 const $ = (id) => document.getElementById(id);
-const catClass = (id) => `cat-${String(id || "unknown").replace(/[^a-z0-9_-]/gi, "")}`;
 
 let state = { tab: null, rules: null, settings: null, result: null, manualId: null };
+
+function catColor(id) {
+  const c = allCategories(state.rules).find((x) => x.id === id);
+  return categoryColor(c ? c.name : id);
+}
 
 function safeImgUrl(u) {
   return typeof u === "string" && /^(https?:|data:image\/)/i.test(u) ? u : "";
@@ -20,7 +24,8 @@ function favicon(tab) {
 
 function paintBadge(cat) {
   const badge = $("cur-badge");
-  badge.className = `badge badge--lg ${catClass(cat.id)}`;
+  badge.className = "badge badge--lg";
+  badge.style.setProperty("--cat", cat.color || catColor(cat.id));
   $("cur-badge-name").textContent = cat.name;
 }
 
@@ -258,7 +263,7 @@ async function createFolder() {
 
   // New categories sit just above Unknown (lowest priority of the real folders),
   // so they don't unexpectedly outrank existing specific categories.
-  state.rules.categories.push({ id, name: raw, color: "#8B8680", keywords: [] });
+  state.rules.categories.push({ id, name: raw, keywords: [] });
   await setRules(state.rules);
 
   buildOverride();

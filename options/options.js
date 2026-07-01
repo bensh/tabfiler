@@ -1,4 +1,4 @@
-import { categorize, allCategories } from "../lib/categorize.js";
+import { categorize, allCategories, categoryColor } from "../lib/categorize.js";
 import {
   getRules, setRules, getSettings, setSettings, getOpenTabs, isDemo, runtimeApi,
   buildBackup, validateBackup, applyBackup,
@@ -7,9 +7,21 @@ import { getFiled } from "../lib/bookmarks.js";
 
 const $ = (id) => document.getElementById(id);
 const $$ = (sel) => Array.from(document.querySelectorAll(sel));
-// Strip anything that isn't a safe class-name char, so an imported/synced id
-// can never break out of the class attribute. Defense at the sink, not just entry.
-const catClass = (id) => `cat-${String(id || "unknown").replace(/[^a-z0-9_-]/gi, "")}`;
+
+// A category's colour is computed from its name (see categoryColor), so there's
+// no per-category CSS and no limit on how many categories can have distinct colours.
+function catColor(id) {
+  const c = allCategories(rules).find((x) => x.id === id);
+  return categoryColor(c ? c.name : id);
+}
+
+// Build a category badge whose dot uses the computed colour.
+function catBadge(id, name, large) {
+  return el("span", {
+    class: `badge ${large ? "badge--lg " : ""}`,
+    style: `--cat: ${categoryColor(name)}`,
+  }, [el("span", { class: "dot" }), name]);
+}
 
 // Tiny DOM builder: el("div", {class:"x", onclick:fn}, [childNode, "text"]).
 // Avoids innerHTML entirely, so untrusted strings can never be parsed as markup.
@@ -62,6 +74,10 @@ function bindSettings() {
   $("root-name").textContent = settings.rootFolderName;
   $$(`input[name="dup"]`).forEach((el) => { el.checked = el.value === settings.duplicates; });
   $$(`input[name="unk"]`).forEach((el) => { el.checked = el.value === settings.unknownMode; });
+  $("s-grace").checked = settings.grace;
+  $$(`input[name="graceMode"]`).forEach((el) => { el.checked = el.value === settings.graceMode; });
+  $("s-grace-seconds").value = String(settings.graceSeconds);
+  updateGraceDetail();
 
   const save = async (patch) => { settings = await setSettings(patch); };
   $("s-onload").onchange = (e) => save({ autoOnLoad: e.target.checked });
@@ -73,6 +89,9 @@ function bindSettings() {
   $("s-root").onchange = (e) => save({ rootFolderName: e.target.value || "TabFiler" });
   $$(`input[name="dup"]`).forEach((el) => el.addEventListener("change", () => save({ duplicates: el.value })));
   $$(`input[name="unk"]`).forEach((el) => el.addEventListener("change", () => save({ unknownMode: el.value })));
+  $("s-grace").onchange = (e) => { save({ grace: e.target.checked }); updateGraceDetail(); };
+  $$(`input[name="graceMode"]`).forEach((el) => el.addEventListener("change", () => save({ graceMode: el.value })));
+  $("s-grace-seconds").onchange = (e) => save({ graceSeconds: parseInt(e.target.value, 10) });
   $("reset-defaults").onclick = async () => {
     if (!confirm("Reset all settings and category rules to defaults?")) return;
     location.reload();
@@ -81,6 +100,15 @@ function bindSettings() {
   $("export-btn").onclick = exportBackup;
   $("import-btn").onclick = () => $("import-file").click();
   $("import-file").onchange = importBackup;
+}
+
+// Dim/disable the grace detail options when the feature is off.
+function updateGraceDetail() {
+  const on = $("s-grace").checked;
+  const detail = $("grace-detail");
+  detail.style.opacity = on ? "" : "0.45";
+  detail.style.pointerEvents = on ? "" : "none";
+  detail.querySelectorAll("input, select").forEach((c) => { c.disabled = !on; });
 }
 
 function backupMsg(text, ok) {
@@ -201,10 +229,7 @@ function renderReview() {
 
     // category badge
     const badgeWrap = el("div", {}, [
-      el("span", { class: `badge ${catClass(cat.id)}` }, [
-        el("span", { class: "dot" }),
-        cat.name,
-      ]),
+      catBadge(cat.id, cat.name),
       manual ? el("span", { class: "manual-tag", text: "manual" }) : null,
     ]);
 
@@ -355,7 +380,7 @@ async function renderFiled() {
       },
     }, [
       chevron,
-      el("span", { class: `badge ${catClass(catIdFromName(cat.name))}` }, [el("span", { class: "dot" }), cat.name]),
+      catBadge(catIdFromName(cat.name), cat.name),
       el("span", { class: "filed-cat__count", text: `${cat.count}` }),
     ]);
 
@@ -455,7 +480,7 @@ function renderRules() {
     const head = el("div", { class: "crow__head" }, [
       handle,
       el("span", { class: "crow__rank", text: String(idx + 1) }),
-      el("span", { class: `badge ${catClass(cat.id)}` }, [el("span", { class: "dot" }), cat.name]),
+      catBadge(cat.id, cat.name),
       el("span", { class: "crow__move" }, [upBtn, downBtn]),
     ]);
 
@@ -525,7 +550,9 @@ function runTest() {
   const val = $("test-input").value;
   const r = categorize(val, rules, { wholeWord: settings.wholeWord });
   const box = $("test-result");
-  box.querySelector(".badge").className = `badge badge--lg ${catClass(r.category.id)}`;
+  const testBadge = box.querySelector(".badge");
+  testBadge.className = "badge badge--lg";
+  testBadge.style.setProperty("--cat", categoryColor(r.category.name));
   box.querySelector(".test-cat").textContent = r.category.name;
   const reasonEl = box.querySelector(".test-reason");
   if (val.trim()) renderReason(reasonEl, r.reason);
@@ -541,7 +568,7 @@ function bindRules() {
     const clean = name.trim().slice(0, 60);
     let id = clean.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || `cat-${Date.now()}`;
     if (rules.categories.some((c) => c.id === id)) id = `${id}-${Date.now().toString(36)}`;
-    rules.categories.push({ id, name: clean, color: "#8B8680", keywords: [] });
+    rules.categories.push({ id, name: clean, keywords: [] });
     persistRules(); renderRules();
   };
 }

@@ -101,6 +101,31 @@
         </div>
 
         <div class="setting-group card">
+          <p class="eyebrow group-label">Closing a tab</p>
+          <p class="group-help">When you close a tab that matches a category, give yourself a moment to change your mind — handy when you were just glancing at a page.</p>
+          <div class="set-row">
+            <div class="set-row__text"><b>Give me a chance to cancel</b><span>Off means matching pages are saved instantly on close.</span></div>
+            <label class="switch"><input type="checkbox" id="s-grace" /><span class="track" aria-hidden="true"></span></label>
+          </div>
+          <div id="grace-detail">
+            <div class="radio-set" role="radiogroup" aria-label="Cancel behaviour">
+              <label class="radio"><input type="radio" name="graceMode" value="undo" /><span class="dot-r"></span><span><b>Save, then let me undo</b> — files it right away; click the message to remove it</span></label>
+              <label class="radio"><input type="radio" name="graceMode" value="delay" /><span class="dot-r"></span><span><b>Wait, then save</b> — holds off; click the message to skip saving entirely</span></label>
+            </div>
+            <div class="set-row set-row--sub">
+              <div class="set-row__text"><b>Cancel window</b><span>How long the message stays actionable.</span></div>
+              <select id="s-grace-seconds" class="root-input" aria-label="Cancel window in seconds">
+                <option value="5">5 seconds</option>
+                <option value="10">10 seconds</option>
+                <option value="15">15 seconds</option>
+                <option value="20">20 seconds</option>
+                <option value="30">30 seconds</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="setting-group card">
           <p class="eyebrow group-label">Duplicates</p>
           <p class="group-help">A page counts as a duplicate when it's already in a TabFiler folder — same URL, or the same title on the same site. Copies in other folders (made by you or other tools) are left alone. When a duplicate is found…</p>
           <div class="radio-set" role="radiogroup" aria-label="Duplicate handling">
@@ -170,7 +195,7 @@
             <p class="eyebrow">Priority — drag to reorder</p>
             <ul id="cat-list" class="cat-list"></ul>
             <div class="cat-pinned">
-              <span class="badge cat-unknown"><span class="dot"></span>Unknown</span>
+              <span class="badge" style="--cat: #8B8680"><span class="dot"></span>Unknown</span>
               <span class="cat-pinned__note">Fallback when nothing matches. Always last.</span>
             </div>
             <button id="add-cat" class="btn btn--sm add-cat">+ Add category</button>
@@ -181,7 +206,7 @@
             <p class="eyebrow">Test a title</p>
             <input type="text" id="test-input" placeholder="e.g. security workshop and guide book | android" aria-label="Test tab title" />
             <div id="test-result" class="test-result">
-              <span class="badge badge--lg cat-unknown"><span class="dot"></span><span class="test-cat">Unknown</span></span>
+              <span class="badge badge--lg" style="--cat: #8B8680"><span class="dot"></span><span class="test-cat">Unknown</span></span>
               <p class="test-reason">Type a title to see where it would go.</p>
             </div>
             <div class="test-presets">

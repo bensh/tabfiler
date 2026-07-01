@@ -6,7 +6,7 @@ const DEFAULT_SETTINGS = {
   autoOnLoad: false, autoOnClose: true, duplicates: "skip",
   unknownMode: "bookmark", askWhenNoFit: true, wholeWord: true,
   notifyOnAuto: true, rootFolderName: "TabFiler", onboarded: false,
-  autoCategories: [],
+  autoCategories: [], grace: true, graceMode: "undo", graceSeconds: 10,
 };
 
 let categorize, DEFAULT_RULES, fileBookmark;
@@ -68,16 +68,92 @@ async function fileTab(tab, trigger) {
   const perCategoryOn = (settings.autoCategories || []).includes(r.category.id);
   if (!globalOn && !perCategoryOn) return;
 
+  // Grace period only applies to closing a tab (not on-load), and only when
+  // enabled. It gives the user a chance to cancel a save they didn't intend.
+  const useGrace = trigger === "close" && settings.grace;
+  const seconds = Math.max(3, Math.min(60, settings.graceSeconds || 10));
+
+  if (useGrace && settings.graceMode === "delay") {
+    // DELAY MODE: don't save yet. Offer a "skip" notification; save only if the
+    // window elapses without the user cancelling.
+    schedulePendingSave({ tab, category: r.category, settings, seconds });
+    return;
+  }
+
+  // Normal save (also the path for on-load, and for UNDO grace mode).
   const result = await fileBookmark(browser, {
     tab,
     categoryName: r.category.name,
     rootFolderName: settings.rootFolderName,
     duplicates: settings.duplicates,
   });
+  if (result.action === "skipped") return;
 
-  if (result.action !== "skipped") {
+  if (useGrace && settings.graceMode === "undo") {
+    // UNDO MODE: it's saved; notify with a time-boxed chance to remove it.
+    notifyUndo(settings, result.folderName, clampTitleLocal(tab.title), result, seconds);
+  } else {
     notifyFiled(settings, result.folderName, clampTitleLocal(tab.title), result.bookmarkId, result.action);
   }
+}
+
+// ---- grace: DELAY mode ----
+// Pending saves keyed by a synthetic id; a click on the notification cancels.
+const pending = new Map();
+
+function schedulePendingSave({ tab, category, settings, seconds }) {
+  const pid = `tabfiler-pending:${tab.url}:${Date.now()}`;
+  const timer = setTimeout(async () => {
+    pending.delete(pid);
+    browser.notifications.clear(pid);
+    const result = await fileBookmark(browser, {
+      tab,
+      categoryName: category.name,
+      rootFolderName: settings.rootFolderName,
+      duplicates: settings.duplicates,
+    });
+    if (result.action !== "skipped" && settings.notifyOnAuto) {
+      notifyFiled(settings, result.folderName, clampTitleLocal(tab.title), result.bookmarkId, result.action);
+    }
+  }, seconds * 1000);
+
+  pending.set(pid, timer);
+  if (pending.size > 200) {
+    const oldest = pending.keys().next().value;
+    clearTimeout(pending.get(oldest)); pending.delete(oldest);
+  }
+
+  browser.notifications.create(pid, {
+    type: "basic",
+    iconUrl: browser.runtime.getURL("icons/icon-48.png"),
+    title: `Filing to ${category.name} in ${seconds}s`,
+    message: `${clampTitleLocal(tab.title)}\nClick to skip saving this page.`,
+  });
+}
+
+// ---- grace: UNDO mode ----
+function notifyUndo(settings, catName, title, result, seconds) {
+  if (!settings.notifyOnAuto) {
+    // Even with notifications off, still allow undo-map cleanup timing.
+    scheduleUndoExpiry(result, seconds);
+    return;
+  }
+  const nid = `tabfiler:${result.bookmarkId}`;
+  browser.notifications.create(nid, {
+    type: "basic",
+    iconUrl: browser.runtime.getURL("icons/icon-48.png"),
+    title: `Filed to ${catName}`,
+    message: `${title}\nClick to undo (within ${seconds}s).`,
+  });
+  lastFiled.set(nid, result.bookmarkId);
+  if (lastFiled.size > 200) lastFiled.delete(lastFiled.keys().next().value);
+  scheduleUndoExpiry(result, seconds, nid);
+}
+
+function scheduleUndoExpiry(result, seconds, nid) {
+  setTimeout(() => {
+    if (nid) { lastFiled.delete(nid); browser.notifications.clear(nid); }
+  }, seconds * 1000);
 }
 
 // Lightweight local clamp for the notification message (display only).
@@ -103,8 +179,16 @@ function notifyFiled(settings, catName, title, bookmarkId, mode) {
   if (lastFiled.size > 200) lastFiled.delete(lastFiled.keys().next().value);
 }
 
-// undo via notification click
+// Notification clicks:
+//  - a pending (delay-mode) notification -> cancel the scheduled save
+//  - a filed (undo-mode) notification    -> remove the bookmark just saved
 browser.notifications.onClicked.addListener(async (nid) => {
+  if (pending.has(nid)) {
+    clearTimeout(pending.get(nid));
+    pending.delete(nid);
+    browser.notifications.clear(nid);
+    return;
+  }
   const bid = lastFiled.get(nid);
   if (bid) { try { await browser.bookmarks.remove(bid); } catch (e) {} lastFiled.delete(nid); }
   browser.notifications.clear(nid);
